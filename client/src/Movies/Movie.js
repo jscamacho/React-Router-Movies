@@ -1,57 +1,38 @@
-import React, {Component} from 'react';
+import React, { useState, useEffect } from 'react';
 import MovieCard from './MovieCard';
 import axios from 'axios';
 
- 
-  export default class Movie extends Component {
-    constructor(props) {
-      super(props);
-      this.state = {
-        movie: null
-      };
+const Movie = (props) => {
+  const [movie, setMovie] = useState();
+
+  useEffect(() => {
+    const id = props.match.params.id;
+    console.log(id);
+
+    axios
+      .get(`http://localhost:5000/api/movies/${id}`)
+      .then(response => {
+        console.log(response)
+        setMovie(response.data);
+      })
+      .catch(error => {
+        console.error(error);
+      });
+    }, [props.match.params.id]);
+
+
+    const saveMovie = () => {
+      const addToSavedList = props.addToSavedList;
+      addToSavedList(movie)
     }
   
-    componentDidMount() {
-      // change this line to grab the id passed on the URL
-      const { id } = this.props.match.params;
-      this.fetchMovie(id);
+    if (!movie) {
+      return <div>Loading movie information...</div>;
     }
-  
-    fetchMovie = id => {
-      axios
-        .get(`http://localhost:5000/api/movies/${id}`)
-        .then(response => {
-          this.setState(() => ({ movie: response.data }));
-        })
-        .catch(error => {
-          console.error(error);
-        });
-    };
-    // Uncomment this code when you're ready for the stretch problems
-    // componentWillReceiveProps(newProps) {
-    //   if (this.props.match.params.id !== newProps.match.params.id) {
-    //     this.fetchMovie(newProps.match.params.id);
-    //   }
-    // }
-  
-    saveMovie = () => {
-      const addToSavedList = this.props.addToSavedList;
-      addToSavedList(this.state.movie);
-    };
-  
-    render() {
-      if (!this.state.movie) {
-        return <div>Loading movie information...</div>;
-      }
-  
-      const { movie } = this.state;
-      return (
-        <div className="save-wrapper">
-          <MovieCard movie={movie} />
-          <div className="save-button" onClick={() => this.saveMovie()}>
-            Save
-          </div>
-        </div>
-      );
-    }
+    return (
+    <MovieCard movie={movie} saveLink={true} saveMovie={saveMovie} />
+    );
   }
+  
+  export default Movie;
+  
